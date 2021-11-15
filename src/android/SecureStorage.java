@@ -22,7 +22,7 @@ public class SecureStorage extends CordovaPlugin {
     private static final String TAG = "SecureStorage";
 
     private static final boolean SUPPORTED = Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP;
-    private static final boolean MATCHES_ANDROID_API_28 = Build.VERSION.SDK_INT >= Build.VERSION_CODES.P;
+    private static final boolean OL_ANDROID_API_28 = Build.VERSION.SDK_INT >= 28; //Build.VERSION_CODES.P
     private static final String ACTION_UNLOCK = "com.android.credentials.UNLOCK";
     private static final String MSG_NOT_SUPPORTED = "API 21 (Android 5.0 Lollipop) is required. This device is running API " + Build.VERSION.SDK_INT;
     private static final String MSG_DEVICE_NOT_SECURE = "Device is not secure";
@@ -108,12 +108,13 @@ public class SecureStorage extends CordovaPlugin {
 
             // To check whether the device is matching API 28 or above i.e. no longer support com.android.credentials.UNLOCK
             // Hence init success callback
-            if (MATCHES_ANDROID_API_28) {
-                Log.e(TAG, MATCHES_ANDROID_API_28);
+            if (OL_ANDROID_API_28) {
+                Log.i("INFO","Device is on / later than API28");
                 initSuccess(callbackContext);
                 return true;
             }
-
+            
+            Log.i("INFO","Device is below API28");
             // For lower devices than MATCHES_ANDROID_API_28, Init callback context and Dispatch com.android.credentials.UNLOCK
             initContext = callbackContext;
             unlockCredentials();
