@@ -2,7 +2,7 @@ package com.crypho.plugins;
 
 import java.lang.reflect.Method;
 import java.util.Hashtable;
-
+import android.content.ActivityNotFoundException;
 import android.util.Log;
 import android.util.Base64;
 import android.os.Build;
@@ -22,7 +22,8 @@ public class SecureStorage extends CordovaPlugin {
     private static final String TAG = "SecureStorage";
 
     private static final boolean SUPPORTED = Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP;
-
+    private static final boolean MATCHES_ANDROID_API_28 = Build.VERSION.SDK_INT >= Build.VERSION_CODES.P;
+    private static final String ACTION_UNLOCK = "com.android.credentials.UNLOCK";
     private static final String MSG_NOT_SUPPORTED = "API 21 (Android 5.0 Lollipop) is required. This device is running API " + Build.VERSION.SDK_INT;
     private static final String MSG_DEVICE_NOT_SECURE = "Device is not secure";
 
@@ -69,7 +70,7 @@ public class SecureStorage extends CordovaPlugin {
 
     @Override
     public boolean execute(String action, CordovaArgs args, final CallbackContext callbackContext) throws JSONException {
-        if(!SUPPORTED){
+        if (!SUPPORTED){
             Log.w(TAG, MSG_NOT_SUPPORTED);
             callbackContext.error(MSG_NOT_SUPPORTED);
             return false;
@@ -102,12 +103,20 @@ public class SecureStorage extends CordovaPlugin {
             if (!isDeviceSecure()) {
                 Log.e(TAG, MSG_DEVICE_NOT_SECURE);
                 callbackContext.error(MSG_DEVICE_NOT_SECURE);
-            } else if (!RSA.isEntryAvailable(alias)) {
-                initContext = callbackContext;
-                unlockCredentials();
-            } else {
-                initSuccess(callbackContext);
+                return true;
             }
+
+            // To check whether the device is matching API 28 or above i.e. no longer support com.android.credentials.UNLOCK
+            // Hence init success callback
+            if (MATCHES_ANDROID_API_28) {
+                Log.e(TAG, MATCHES_ANDROID_API_28);
+                initSuccess(callbackContext);
+                return true;
+            }
+
+            // For lower devices than MATCHES_ANDROID_API_28, Init callback context and Dispatch com.android.credentials.UNLOCK
+            initContext = callbackContext;
+            unlockCredentials();
             return true;
         }
         if ("set".equals(action)) {
@@ -199,7 +208,7 @@ public class SecureStorage extends CordovaPlugin {
 
     private String service2alias(String service) {
         String res = INIT_PACKAGENAME + "." + service;
-        return  res;
+        return res;
     }
 
     private SharedPreferencesHandler getStorage(String service) {
@@ -213,8 +222,13 @@ public class SecureStorage extends CordovaPlugin {
     private void unlockCredentials() {
         cordova.getActivity().runOnUiThread(new Runnable() {
             public void run() {
-                Intent intent = new Intent("com.android.credentials.UNLOCK");
-                startActivity(intent);
+                // Wrapping it inside try catch block, to avoid application crashes and replacing hardocoded string with ACTION_UNLOCK
+                try {
+                    Intent intent = new Intent(ACTION_UNLOCK);
+                    startActivity(intent);
+                } catch (ActivityNotFoundException e) {
+                    Log.e(TAG, "No activity found :", e);
+                }
             }
         });
     }
