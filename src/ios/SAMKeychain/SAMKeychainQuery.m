@@ -40,7 +40,7 @@
 	if (status == errSecSuccess) {//item already exists, update it!
 		query = [[NSMutableDictionary alloc]init];
 		[query setObject:self.passwordData forKey:(__bridge id)kSecValueData];
-#if __IPHONE_4_0 && TARGET_OS_IPHONE
+#if TARGET_OS_IPHONE
 		CFTypeRef accessibilityType = [SAMKeychain accessibilityType];
 		if (accessibilityType) {
 			[query setObject:(__bridge id)accessibilityType forKey:(__bridge id)kSecAttrAccessible];
@@ -53,7 +53,7 @@
 			[query setObject:self.label forKey:(__bridge id)kSecAttrLabel];
 		}
 		[query setObject:self.passwordData forKey:(__bridge id)kSecValueData];
-#if __IPHONE_4_0 && TARGET_OS_IPHONE
+#if TARGET_OS_IPHONE
 		CFTypeRef accessibilityType = [SAMKeychain accessibilityType];
 		if (accessibilityType) {
 			[query setObject:(__bridge id)accessibilityType forKey:(__bridge id)kSecAttrAccessible];
@@ -110,7 +110,7 @@
 	NSMutableDictionary *query = [self query];
 	[query setObject:@YES forKey:(__bridge id)kSecReturnAttributes];
 	[query setObject:(__bridge id)kSecMatchLimitAll forKey:(__bridge id)kSecMatchLimit];
-#if __IPHONE_4_0 && TARGET_OS_IPHONE
+#if TARGET_OS_IPHONE
 	CFTypeRef accessibilityType = [SAMKeychain accessibilityType];
 	if (accessibilityType) {
 		[query setObject:(__bridge id)accessibilityType forKey:(__bridge id)kSecAttrAccessible];
@@ -158,13 +158,37 @@
 #pragma mark - Accessors
 
 - (void)setPasswordObject:(id<NSCoding>)object {
+	if (@available(iOS 11.0, macOS 10.13, *)) {
+		NSError *archiveError = nil;
+		NSData *encodedData = [NSKeyedArchiver archivedDataWithRootObject:object requiringSecureCoding:NO error:&archiveError];
+		if (encodedData) {
+			self.passwordData = encodedData;
+			return;
+		}
+	}
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wdeprecated-declarations"
 	self.passwordData = [NSKeyedArchiver archivedDataWithRootObject:object];
+#pragma clang diagnostic pop
 }
 
 
 - (id<NSCoding>)passwordObject {
 	if ([self.passwordData length]) {
+		if (@available(iOS 11.0, macOS 10.13, *)) {
+			NSError *unarchiveError = nil;
+			NSKeyedUnarchiver *unarchiver = [[NSKeyedUnarchiver alloc] initForReadingFromData:self.passwordData error:&unarchiveError];
+			if (unarchiver) {
+				unarchiver.requiresSecureCoding = NO;
+				id<NSCoding> object = [unarchiver decodeObjectForKey:NSKeyedArchiveRootObjectKey];
+				[unarchiver finishDecoding];
+				return object;
+			}
+		}
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wdeprecated-declarations"
 		return [NSKeyedUnarchiver unarchiveObjectWithData:self.passwordData];
+#pragma clang diagnostic pop
 	}
 	return nil;
 }
@@ -213,7 +237,7 @@
 	}
 
 #ifdef SAMKEYCHAIN_ACCESS_GROUP_AVAILABLE
-#if !TARGET_IPHONE_SIMULATOR
+#if !TARGET_OS_SIMULATOR
 	if (self.accessGroup) {
 		[dictionary setObject:self.accessGroup forKey:(__bridge id)kSecAttrAccessGroup];
 	}

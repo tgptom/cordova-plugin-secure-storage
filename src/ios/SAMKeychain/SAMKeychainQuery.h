@@ -13,13 +13,14 @@
 	#import <Foundation/Foundation.h>
 	#import <Security/Security.h>
 #endif
+#import <TargetConditionals.h>
 
-#if __IPHONE_7_0 || __MAC_10_9
+#if ((TARGET_OS_IPHONE && __IPHONE_OS_VERSION_MAX_ALLOWED >= 70000) || (TARGET_OS_OSX && __MAC_OS_X_VERSION_MAX_ALLOWED >= 1090))
 	// Keychain synchronization available at compile time
 	#define SAMKEYCHAIN_SYNCHRONIZATION_AVAILABLE 1
 #endif
 
-#if __IPHONE_3_0 || __MAC_10_9
+#if (TARGET_OS_IPHONE || (TARGET_OS_OSX && __MAC_OS_X_VERSION_MAX_ALLOWED >= 1090))
 	// Keychain access group available at compile time
 	#define SAMKEYCHAIN_ACCESS_GROUP_AVAILABLE 1
 #endif

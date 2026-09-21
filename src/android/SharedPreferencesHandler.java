@@ -2,7 +2,6 @@ package com.crypho.plugins;
 
 import java.util.Set;
 import java.util.HashSet;
-import java.util.Iterator;
 
 import android.content.SharedPreferences;
 import android.content.Context;
@@ -30,11 +29,9 @@ public class SharedPreferencesHandler {
         editor.commit();
     }
 
-    Set keys (){
-        Set res = new HashSet<String>();
-    	Iterator<String> iter = prefs.getAll().keySet().iterator();
-        while (iter.hasNext()) {
-            String key = iter.next();
+    Set<String> keys (){
+        Set<String> res = new HashSet<String>();
+        for (String key : prefs.getAll().keySet()) {
             if (key.startsWith("_SS_")  && !key.startsWith("_SS_MIGRATED_")) {
                 res.add(key.replaceFirst("^_SS_", ""));
             }

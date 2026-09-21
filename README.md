@@ -18,6 +18,31 @@ such as usernames, passwords, tokens, certificates or other sensitive informatio
 - iOS
 - Windows (Windows 8.x/Store, Windows 10/UWP and Windows Phone 8.1+)
 
+### Compatibility matrix (this fork)
+
+| Platform | Status | CI native compile |
+| --- | --- | --- |
+| cordova-android 14.x | Supported | ✅ |
+| cordova-android 15.x | Supported | ✅ |
+| cordova-ios 7.x | Supported | ✅ |
+| cordova-ios 8.x | Supported | ✅ |
+
+### Toolchain notes for validated matrix
+
+- Node.js 20.19+ (Cordova platform package requirements differ by major; this satisfies tested entries).
+- Android:
+  - cordova-android 14.x: JDK 17, Android SDK platform 35 / Build-Tools 35.0.0
+  - cordova-android 15.x: JDK 17, Android SDK platform 36 / Build-Tools 36.0.0
+- iOS:
+  - cordova-ios 7.x and 8.x are compile-tested on current GitHub macOS runners with Xcode and `cordova build ios --simulator`.
+
+### Backwards compatibility guarantees
+
+- **JavaScript API is unchanged**.
+- Android encrypted payload schema is intentionally preserved (`RSA/ECB/PKCS1Padding` envelope over AES payload, same alias construction and SharedPreferences naming).
+- Existing Android records written by previous plugin releases remain decryptable after upgrade.
+- iOS Keychain service/account usage and Keychain item behavior are intentionally preserved to keep existing records readable after upgrade.
+
 ### Contents
 
 - [Installation](#installation)
@@ -42,7 +67,7 @@ cordova plugin add cordova-plugin-secure-storage
 or if you want to be running the development version,
 
 ```sh
-cordova plugin add https://github.com/crypho/cordova-plugin-secure-storage.git
+cordova plugin add https://github.com/tgptom/cordova-plugin-secure-storage.git
 ```
 
 ## <a name="plugin_api"></a> Plugin API
@@ -158,15 +183,9 @@ For example, include in your `config.xml` the following:
     </platform>
 ```
 
-#### iOS 7 Support
+#### iOS 7/8 support notes
 
-iOS 7 is supported without `WhenPasscodeSetThisDeviceOnly` option.
-
-How to test the plugin using iOS 7 simulator:
-
-- Download and install Xcode 6 into a separate folder, e.g. /Application/Xcode 6/
-- Run `$ xcode-select --switch <path to Xcode6>/Contents/Developer`
-- Build Cordova app with the plugin and run it in iOS 7 simulator
+`cordova-ios` 7.x and 8.x builds are validated in CI by creating a blank app, installing this local plugin, and compiling for simulator.
 
 #### Android
 
@@ -292,6 +311,8 @@ Please note that if the 2 apps use different `android:sharedUserId`, the `App2` 
 
 If `App1` is uninstalled and `App2` tries to access the `sharedKey` from `App1`, `App2` will fail with an error `Error: Application package com.test.app1 not found`.
 
+> ⚠️ `android:sharedUserId` is deprecated in modern Android app builds. Keep this only for legacy interoperability scenarios.
+
 ##### Android keystore deletion on security setting change
 
 Changing the lock screen type on Android erases the keystore (issues [61989](https://code.google.com/p/android/issues/detail?id=61989) and [210402](https://code.google.com/p/android/issues/detail?id=210402)). This is also described in the [Android Security: The Forgetful Keystore](https://doridori.github.io/android-security-the-forgetful-keystore/) blog post.
@@ -322,6 +343,15 @@ The browser platform is supported as a mock only. Key/values are stored unencryp
 
 ## Testing
 
+### Automated CI coverage
+
+GitHub Actions runs a matrix that, for each supported Cordova major listed above, creates a blank Cordova app, installs this plugin from the repository checkout, and compiles native projects:
+
+- Android: `cordova-android@14.0.0` and `cordova-android@15.1.0`
+- iOS: `cordova-ios@7.1.1` and `cordova-ios@8.1.1`
+
+This CI verifies plugin installation and native compilation compatibility. It does **not** fully validate runtime security properties.
+
 ### Setup
 
 1. Create a cordova app.
@@ -343,6 +373,28 @@ cordova plugin add PATH_TO_SECURE_STORAGE_PLUGIN/tests
 ### Running the tests
 
 Just run the app for all platforms. Remember, if you have changes to test you will need to remove the secure storage plugin and add it again for the changes to be seen by the app.
+
+### Manual upgrade persistence verification
+
+To verify upgrade safety for existing users:
+
+1. Build and install an app using an older plugin release.
+2. Store values for at least two services and multiple keys.
+3. Upgrade the app to this plugin release (and desired Cordova platform major).
+4. Verify all previously stored values are still readable.
+5. Verify new writes are readable by subsequent app launches.
+
+### Manual physical-device security verification (required)
+
+Simulator/emulator CI cannot fully validate device security semantics. Run these checks on real devices:
+
+- Android:
+  - Initialize with secure lock enabled and disabled.
+  - Change screen lock type and confirm documented keystore reset behavior.
+  - Re-run set/get/remove/keys/clear and concurrent operations.
+- iOS:
+  - Validate configured `KeychainAccessibility` behavior (foreground/background/locked-device access expectations).
+  - Verify records survive app update and remain isolated per service/account.
 
 ## <a name="license"></a> LICENSE
 
