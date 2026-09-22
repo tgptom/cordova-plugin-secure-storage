@@ -47,6 +47,8 @@ jobs:
 
       - name: Setup Android SDK
         uses: android-actions/setup-android@v3
+        with:
+          packages: platform-tools
 
       - name: Install Android SDK components
         run: |
@@ -94,4 +96,4 @@ jobs:
           cd "$APP_DIR"
           cordova platform add "ios@${{ matrix.platform_version }}"
           cordova plugin add "$GITHUB_WORKSPACE"
-          cordova build ios --simulator --no-telemetry
+          cordova build ios --simulator --target="iPhone 17" --no-telemetry
