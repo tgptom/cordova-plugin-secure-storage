@@ -67,6 +67,28 @@ exports.defineAutoTests = function() {
             ss = new cordova.plugins.SecureStorage(handlers.successHandler, handlers.errorHandler, SERVICE);
         });
 
+        if (cordova.platformId === 'android') {
+            it('should call the error handler when init packageName is invalid', function (done) {
+                spyOn(handlers, 'errorHandler').and.callFake(function (err) {
+                    expect(err).toEqual(jasmine.any(Error));
+                    expect(handlers.successHandler).not.toHaveBeenCalled();
+                    done();
+                });
+                spyOn(handlers, 'successHandler');
+
+                ss = new cordova.plugins.SecureStorage(
+                    handlers.successHandler,
+                    handlers.errorHandler,
+                    SERVICE,
+                    {
+                        android: {
+                            packageName: 'com.crypho.does.not.exist'
+                        }
+                    }
+                );
+            });
+        }
+
         it('should be able to set a key/value', function (done) {
             spyOn(handlers, 'successHandler').and.callFake(function (res) {
                 expect(res).toEqual('foo');

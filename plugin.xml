@@ -2,7 +2,7 @@
 <plugin xmlns="http://apache.org/cordova/ns/plugins/1.0"
     xmlns:android="http://schemas.android.com/apk/res/android"
     id="cordova-plugin-secure-storage"
-    version="3.0.3">
+    version="3.0.4">
 
     <name>SecureStorage</name>
     <author>Crypho AS</author>
@@ -21,6 +21,8 @@
 
     <engines>
         <engine name="cordova" version=">=3.0.0" />
+        <engine name="cordova-android" version=">=14.0.0 <16.0.0" />
+        <engine name="cordova-ios" version=">=7.0.0 <9.0.0" />
     </engines>
 
     <platform name="ios">

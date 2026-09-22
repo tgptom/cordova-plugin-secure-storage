@@ -12,22 +12,13 @@
     NSString *keychainAccessibility;
     NSDictionary *keychainAccesssibilityMapping;
 
-    if ([[[UIDevice currentDevice] systemVersion] floatValue] >= 8.0){
-          keychainAccesssibilityMapping = [NSDictionary dictionaryWithObjectsAndKeys:
-              (__bridge id)(kSecAttrAccessibleAfterFirstUnlock), @"afterfirstunlock",
-              (__bridge id)(kSecAttrAccessibleAfterFirstUnlockThisDeviceOnly), @"afterfirstunlockthisdeviceonly",
-              (__bridge id)(kSecAttrAccessibleWhenUnlocked), @"whenunlocked",
-              (__bridge id)(kSecAttrAccessibleWhenUnlockedThisDeviceOnly), @"whenunlockedthisdeviceonly",
-              (__bridge id)(kSecAttrAccessibleWhenPasscodeSetThisDeviceOnly), @"whenpasscodesetthisdeviceonly",
-              nil];
-    } else {
-          keychainAccesssibilityMapping = [NSDictionary dictionaryWithObjectsAndKeys:
-              (__bridge id)(kSecAttrAccessibleAfterFirstUnlock), @"afterfirstunlock",
-              (__bridge id)(kSecAttrAccessibleAfterFirstUnlockThisDeviceOnly), @"afterfirstunlockthisdeviceonly",
-              (__bridge id)(kSecAttrAccessibleWhenUnlocked), @"whenunlocked",
-              (__bridge id)(kSecAttrAccessibleWhenUnlockedThisDeviceOnly), @"whenunlockedthisdeviceonly",
-              nil];
-    }
+    keychainAccesssibilityMapping = [NSDictionary dictionaryWithObjectsAndKeys:
+        (__bridge id)(kSecAttrAccessibleAfterFirstUnlock), @"afterfirstunlock",
+        (__bridge id)(kSecAttrAccessibleAfterFirstUnlockThisDeviceOnly), @"afterfirstunlockthisdeviceonly",
+        (__bridge id)(kSecAttrAccessibleWhenUnlocked), @"whenunlocked",
+        (__bridge id)(kSecAttrAccessibleWhenUnlockedThisDeviceOnly), @"whenunlockedthisdeviceonly",
+        (__bridge id)(kSecAttrAccessibleWhenPasscodeSetThisDeviceOnly), @"whenpasscodesetthisdeviceonly",
+        nil];
     keychainAccessibility = [[self.commandDelegate.settings objectForKey:[@"KeychainAccessibility" lowercaseString]] lowercaseString];
     if (keychainAccessibility == nil) {
         [self successWithMessage: nil : command.callbackId];

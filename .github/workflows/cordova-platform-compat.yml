@@ -1,0 +1,99 @@
+name: Cordova platform compatibility
+
+on:
+  pull_request:
+  push:
+    branches:
+      - main
+      - master
+      - copilot/**
+
+permissions:
+  contents: read
+
+env:
+  CORDOVA_TELEMETRY_OPTOUT: 1
+  CORDOVA_DISABLE_TELEMETRY: 1
+
+jobs:
+  android-build:
+    name: android-${{ matrix.platform_version }}
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - platform_version: 14.0.0
+            android_sdk: "35"
+            build_tools: "35.0.0"
+            node_version: "20.19.0"
+          - platform_version: 15.1.0
+            android_sdk: "36"
+            build_tools: "36.0.0"
+            node_version: "20.19.0"
+    steps:
+      - uses: actions/checkout@v5
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v5
+        with:
+          node-version: ${{ matrix.node_version }}
+
+      - name: Setup Java
+        uses: actions/setup-java@v5
+        with:
+          distribution: temurin
+          java-version: "17"
+
+      - name: Setup Android SDK
+        uses: android-actions/setup-android@v3
+        with:
+          packages: platform-tools
+
+      - name: Install Android SDK components
+        run: |
+          sdkmanager --install "platforms;android-${{ matrix.android_sdk }}" "build-tools;${{ matrix.build_tools }}"
+          yes | sdkmanager --licenses
+
+      - name: Install Cordova CLI
+        run: npm install -g cordova@12
+
+      - name: Create app and build
+        run: |
+          APP_DIR="$(mktemp -d)"
+          cordova create "$APP_DIR" com.example.securestorage.test SecureStorageTest
+          cd "$APP_DIR"
+          cordova platform add "android@${{ matrix.platform_version }}"
+          cordova plugin add "$GITHUB_WORKSPACE"
+          cordova build android --no-telemetry
+
+  ios-build:
+    name: ios-${{ matrix.platform_version }}
+    runs-on: macos-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - platform_version: 7.1.1
+            node_version: "20.19.0"
+          - platform_version: 8.1.1
+            node_version: "20.19.0"
+    steps:
+      - uses: actions/checkout@v5
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v5
+        with:
+          node-version: ${{ matrix.node_version }}
+
+      - name: Install Cordova CLI
+        run: npm install -g cordova@12
+
+      - name: Create app and build
+        run: |
+          APP_DIR="$(mktemp -d)"
+          cordova create "$APP_DIR" com.example.securestorage.test SecureStorageTest
+          cd "$APP_DIR"
+          cordova platform add "ios@${{ matrix.platform_version }}"
+          cordova plugin add "$GITHUB_WORKSPACE"
+          cordova build ios --simulator --buildFlag="-destination generic/platform=iOS Simulator" --no-telemetry

@@ -1,6 +1,22 @@
 Changelog
 =========
 
+3.0.4 - 2026-09-21
+------------------
+
+- Modernize Android keystore key generation for API 23+ using `KeyGenParameterSpec` with API 21-22 fallback using `KeyPairGeneratorSpec`, preserving aliases, RSA transformation, payload format, and stored-value compatibility.
+  [copilot]
+- Fix Android init package-context error path to return immediately after callback error (prevents null-context dereference).
+  [copilot]
+- Remove obsolete Android test-only `sharedUserId` manifest override that blocks modern builds.
+  [copilot]
+- Modernize iOS SAMKeychain compile-time checks/macros for current Xcode toolchains and update deprecated keyed archiving paths while preserving keychain storage behavior.
+  [copilot]
+- Add GitHub Actions matrix compile checks for cordova-android 14/15 and cordova-ios 7/8.
+  [copilot]
+- Refresh package/plugin metadata and documentation for modern compatibility and verification guidance.
+  [copilot]
+
 3.0.2 - 2019-04-15
 ------------------
 

@@ -27,7 +27,7 @@ public class SecureStorage extends CordovaPlugin {
     private static final String MSG_NOT_SUPPORTED = "API 21 (Android 5.0 Lollipop) is required. This device is running API " + Build.VERSION.SDK_INT;
     private static final String MSG_DEVICE_NOT_SECURE = "Device is not secure";
 
-    private Hashtable<String, SharedPreferencesHandler> SERVICE_STORAGE = new Hashtable<String, SharedPreferencesHandler>();
+    private final Hashtable<String, SharedPreferencesHandler> SERVICE_STORAGE = new Hashtable<String, SharedPreferencesHandler>();
     private String INIT_SERVICE;
     private String INIT_PACKAGENAME;
     private volatile CallbackContext initContext, secureDeviceContext;
@@ -91,6 +91,7 @@ public class SecureStorage extends CordovaPlugin {
                 // OR if we do not have required permissions and cause a security violation
                 Log.e(TAG, "Init failed :", e);
                 callbackContext.error(e.getMessage());
+                return true;
             }
 
             INIT_PACKAGENAME = ctx.getPackageName();

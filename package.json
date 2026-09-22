@@ -1,6 +1,6 @@
 {
   "name": "cordova-plugin-secure-storage",
-  "version": "3.0.3",
+  "version": "3.0.4",
   "description": "Secure storage plugin for iOS & Android",
   "author": "Yiorgis Gozadinos <ggozad@crypho.com>",
   "contributors": [
@@ -19,7 +19,7 @@
   ],
   "cordova": {
     "id": "cordova-plugin-secure-storage",
-    "platforms": ["android", "ios", "wp8", "windows"]
+    "platforms": ["android", "ios", "windows", "browser"]
   },
   "keywords": [
     "cordova",
@@ -36,7 +36,7 @@
   "main": "www/securestorage.js",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/crypho/cordova-plugin-secure-storage.git"
+    "url": "git+https://github.com/tgptom/cordova-plugin-secure-storage.git"
   },
   "scripts": {
     "eslint": "./node_modules/.bin/eslint www/securestorage.js tests/tests.js"
@@ -47,7 +47,7 @@
   },
   "license": "MIT",
   "bugs": {
-    "url": "https://github.com/crypho/cordova-plugin-secure-storage/issues"
+    "url": "https://github.com/tgptom/cordova-plugin-secure-storage/issues"
   },
-  "homepage": "https://github.com/crypho/cordova-plugin-secure-storage#readme"
+  "homepage": "https://github.com/tgptom/cordova-plugin-secure-storage#readme"
 }

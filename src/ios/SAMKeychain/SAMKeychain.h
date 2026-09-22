@@ -11,6 +11,7 @@
 #else
 	#import <Foundation/Foundation.h>
 #endif
+#import <TargetConditionals.h>
 
 /**
  Error code specific to SAMKeychain that can be returned in NSError objects.
@@ -165,7 +166,7 @@ extern NSString *const kSAMKeychainWhereKey;
 
 #pragma mark - Configuration
 
-#if __IPHONE_4_0 && TARGET_OS_IPHONE
+#if TARGET_OS_IPHONE
 /**
  Returns the accessibility type for all future passwords saved to the Keychain.
 

@@ -1,14 +1,16 @@
 package com.crypho.plugins;
 
 import android.content.Context;
-import android.util.Log;
-
+import android.os.Build;
 import android.security.KeyPairGeneratorSpec;
+import android.security.keystore.KeyGenParameterSpec;
+import android.security.keystore.KeyProperties;
 
 import java.math.BigInteger;
 import java.security.Key;
 import java.security.KeyPairGenerator;
 import java.security.KeyStore;
+import java.security.cert.Certificate;
 import java.util.Calendar;
 
 import javax.crypto.Cipher;
@@ -30,19 +32,35 @@ public class RSA {
         Calendar notBefore = Calendar.getInstance();
         Calendar notAfter = Calendar.getInstance();
         notAfter.add(Calendar.YEAR, 100);
-        String principalString = String.format("CN=%s, OU=%s", alias, ctx.getPackageName());
-        KeyPairGeneratorSpec spec = new KeyPairGeneratorSpec.Builder(ctx)
-            .setAlias(alias)
-            .setSubject(new X500Principal(principalString))
-            .setSerialNumber(BigInteger.ONE)
-            .setStartDate(notBefore.getTime())
-            .setEndDate(notAfter.getTime())
-            .setEncryptionRequired()
-            .setKeySize(2048)
-            .setKeyType("RSA")
-            .build();
+
         KeyPairGenerator kpGenerator = KeyPairGenerator.getInstance("RSA", KEYSTORE_PROVIDER);
-        kpGenerator.initialize(spec);
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+            KeyGenParameterSpec spec = new KeyGenParameterSpec.Builder(
+                alias,
+                KeyProperties.PURPOSE_ENCRYPT | KeyProperties.PURPOSE_DECRYPT
+            )
+                .setKeySize(2048)
+                .setDigests(KeyProperties.DIGEST_SHA256, KeyProperties.DIGEST_SHA512)
+                .setEncryptionPaddings(KeyProperties.ENCRYPTION_PADDING_RSA_PKCS1)
+                .setCertificateSubject(new X500Principal(String.format("CN=%s, OU=%s", alias, ctx.getPackageName())))
+                .setCertificateSerialNumber(BigInteger.ONE)
+                .setCertificateNotBefore(notBefore.getTime())
+                .setCertificateNotAfter(notAfter.getTime())
+                .build();
+            kpGenerator.initialize(spec);
+        } else {
+            KeyPairGeneratorSpec spec = new KeyPairGeneratorSpec.Builder(ctx)
+                .setAlias(alias)
+                .setSubject(new X500Principal(String.format("CN=%s, OU=%s", alias, ctx.getPackageName())))
+                .setSerialNumber(BigInteger.ONE)
+                .setStartDate(notBefore.getTime())
+                .setEndDate(notAfter.getTime())
+                .setEncryptionRequired()
+                .setKeySize(2048)
+                .setKeyType("RSA")
+                .build();
+            kpGenerator.initialize(spec);
+        }
         kpGenerator.generateKeyPair();
     }
 
@@ -68,7 +86,8 @@ public class RSA {
         Key key;
         switch (cipherMode) {
             case Cipher.ENCRYPT_MODE:
-                key = keyStore.getCertificate(alias).getPublicKey();
+                Certificate certificate = keyStore.getCertificate(alias);
+                key = certificate != null ? certificate.getPublicKey() : null;
                 if (key == null) {
                     throw new Exception("Failed to load the public key for " + alias);
                 }
